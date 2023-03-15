@@ -20,7 +20,7 @@ jobs:
           cluster_name: kind
 
       # setting up Tekton Pipelines, CLI and additional components...
-      - uses: openshift-pipelines/setup-tektoncd@main
+      - uses: openshift-pipelines/setup-tektoncd@v1
         with:
           pipeline_version: latest
           feature_flags: '{}'
@@ -56,7 +56,7 @@ Tekton Pipelines exposes [feature-flags][githubTektonFeatureFlags] using a `Conf
 jobs:
   setup-tektoncd:
     steps:
-      - uses: openshift-pipelines/setup-tektoncd@main
+      - uses: openshift-pipelines/setup-tektoncd@v1
         with:
           feature_flags: '{ "enable-custom-tasks": "true" }'
 ```

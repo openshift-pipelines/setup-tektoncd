@@ -69,6 +69,6 @@ runs:
       run: sudo --preserve-env ${{ github.action_path }}/patch-etc-hosts.sh
 
     # installs the pre-compiled Tekton CLI
-    - uses: openshift-pipelines/setup-tektoncd-cli@main
+    - uses: openshift-pipelines/setup-tektoncd-cli@v1
       with:
         version: ${{ inputs.cli_version }}
