@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Deploys a Container Registry instance, waits for the deployment reach running status.
+# Installs or uninstalls the Container Registry.
 #
 
 shopt -s inherit_errexit
@@ -8,36 +8,60 @@ set -eu -o pipefail
 
 source "$(dirname ${BASH_SOURCE[0]})/common.sh"
 
-phase "Deploying a Container Registry on '${REGISTRY_NAMESPACE}' namespace"
+# argument to define what the script should do, "install" is the default
+declare -r arg="${1:-install}"
 
-cat <<EOS |kubectl apply -o yaml -f -
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ${REGISTRY_NAMESPACE}
+[[ "${arg}" != "install" && "${arg}" != "uninstall" ]] &&
+    fail "unknown argument '${arg}' informed, use either 'install' or 'uninstall'"
 
+# common name for the resources managed by this script
+declare -r name="registry"
+# label selector for the resources installed by this script
+declare -r selector="action-setup-tektoncd-${name}"
+
+#
+# Uninstall
+#
+
+# short circuit to uninstall the resources based on the selector
+if [[ "${arg}" == "uninstall" ]]; then
+    phase "Uninstalling Registry using selector 'app=${selector}'"
+    set -x
+    exec kubectl --namespace="${REGISTRY_NAMESPACE}" \
+        delete all --selector="app=${selector}"
+fi
+
+#
+# Install
+#
+
+if ! kubectl get namespaces "${REGISTRY_NAMESPACE}" >/dev/null 2>&1; then
+    phase "Creating Registry namespace '${REGISTRY_NAMESPACE}'"
+    kubectl create namespace "${REGISTRY_NAMESPACE}"
+fi
+
+phase "Installing the Registry on '${REGISTRY_NAMESPACE}' namespace"
+cat <<EOS |kubectl --namespace="${REGISTRY_NAMESPACE}" apply --output=yaml -f -
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: registry
-  namespace: ${REGISTRY_NAMESPACE}
-  name: registry
+    app: ${selector}
+  name: ${name}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: registry
+      app: ${selector}
   template:
     metadata:
       labels:
-        app: registry
+        app: ${selector}
     spec:
       containers:
-        - image: registry:2
-          name: registry
+        - name: ${name}
+          image: registry:2
           imagePullPolicy: IfNotPresent
           env:
             - name: REGISTRY_STORAGE_DELETE_ENABLED
@@ -51,15 +75,17 @@ spec:
             limits:
               cpu: 100m
               memory: 128M
+EOS
 
+phase "Creating the Registry service on '${REGISTRY_NAMESPACE}' namespace"
+cat <<EOS |kubectl --namespace="${REGISTRY_NAMESPACE}" apply --output=yaml -f -
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: registry
-  namespace: ${REGISTRY_NAMESPACE}
-  name: registry
+    app: ${selector}
+  name: ${name}
 spec:
   type: NodePort
   ports:
@@ -68,9 +94,9 @@ spec:
       protocol: TCP
       targetPort: 5000
   selector:
-    app: registry
+    app: ${selector}
 EOS
 
 
-phase "Waiting for Registry rollout"
-rollout_status "${REGISTRY_NAMESPACE}" "registry"
+phase "Waiting for Registry rollout (selector='${selector}')"
+rollout_status "${REGISTRY_NAMESPACE}" "${name}"
