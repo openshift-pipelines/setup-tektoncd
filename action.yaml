@@ -11,7 +11,7 @@ inputs:
     description: |
       Tekton Pipeline release version
     required: false
-    default: v0.45.0
+    default: latest
   feature_flags:
     description: |
       JSON payload for the Tekton Pipelines feature-flags, a configmap containing features toggles.
