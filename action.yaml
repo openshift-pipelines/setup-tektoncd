@@ -11,7 +11,7 @@ inputs:
     description: |
       Tekton Pipeline release version
     required: false
-    default: v0.45.0
+    default: latest
   feature_flags:
     description: |
       JSON payload for the Tekton Pipelines feature-flags, a configmap containing features toggles.
@@ -49,7 +49,7 @@ runs:
         INPUT_PIPELINE_VERSION: ${{ inputs.pipeline_version }}
         INPUT_FEATURE_FLAGS: ${{ inputs.feature_flags }}
         INPUT_CLI_VERSION: ${{ inputs.cli_version }}
-      run: ${{ github.action_path }}/install-registry.sh
+      run: ${{ github.action_path }}/registry.sh
 
     # deploying tekton pipline controller and dependencies, waiting for it to reach ready status
     - shell: bash
@@ -57,7 +57,7 @@ runs:
         INPUT_PIPELINE_VERSION: ${{ inputs.pipeline_version }}
         INPUT_FEATURE_FLAGS: ${{ inputs.feature_flags }}
         INPUT_CLI_VERSION: ${{ inputs.cli_version }}
-      run: ${{ github.action_path }}/install-pipeline.sh
+      run: ${{ github.action_path }}/pipeline.sh
 
     # patches the /etc/hosts to include the container registry hostname resolving to 127.0.0.1
     - shell: bash

@@ -3,7 +3,7 @@
 `setup-tektoncd`
 ----------------
 
-Action to rollout [Tekton Pipeline][githubTektonPipeline], [CLI (`tkn`)][githubTektonCLI] and a [Container-Registry][containerRegistry] instance, setting up the environment for testing using these components.
+Action to rollout [Tekton Pipeline][githubTektonPipeline], [CLI (`tkn`)][githubTektonCLI] and a [Container Registry][containerRegistry] instance, setting up the environment for testing using these components.
 
 # GitHub Action Usage
 
@@ -33,13 +33,15 @@ The action uses the current Kubernetes instance available ([KinD][sigsKinD] for 
 
 ## Inputs
 
-| Input               | Required | Description                                     |
-|:--------------------|:--------:|:------------------------------------------------|
-| `pipeline_version`  | `false`  | Tekton Pipeline version                         |
-| `feature_flags`     | `false`  | Tekton Pipeline feature flags (JSON) payload    |
-| `cli_version`       | `false`  | Tekton CLI (tkn) version                        |
-| `setup_registry`    | `false`  | Rollout a Container-Registry (v2)               |
-| `patch_etc_hosts`   | `false`  | Add Container-Registry hostname to `/etc/hosts` |
+| Input               | Required | Default  | Description                                      |
+|:--------------------|:--------:|:--------:|:-------------------------------------------------|
+| `pipeline_version`  | `false`  | `latest` | Tekton Pipeline version                          |
+| `feature_flags`     | `false`  | `latest` |  Tekton Pipeline feature flags (JSON) payload    |
+| `cli_version`       | `false`  | `latest` |  Tekton CLI (tkn) version                        |
+| `setup_registry`    | `false`  | `latest` |  Rollout a Container-Registry (v2)               |
+| `patch_etc_hosts`   | `false`  | `latest` |  Add Container-Registry hostname to `/etc/hosts` |
+
+By default this action uses `latest` versions, it checks on the respective project repository the latest artefact before install.
 
 # Components
 
@@ -74,7 +76,7 @@ $ kubectl --namespace=tekton-pipelines get configmap feature-flags --output=json
 
 ## CLI (`tkn`)
 
-[Tekton CLI][githubTektonCLI] is installed on `/usr/local/bin` directory and uses the same Kubernetes context than `kubectl`.
+[Tekton CLI][githubTektonCLI] is installed with [setup-tektoncd-cli][setupCLI] action, the `tkn` uses the same Kubernetes context than `kubectl` itself.
 
 ## Container-Registry
 
@@ -105,18 +107,26 @@ There are shell plugins to automatically load the `.env` file, once the required
 ```bash
 source .env
 
-./install-pipeline.sh
-./install-registry.sh
-
-sudo ./install-cli.sh
+./pipeline.sh
+./registry.sh
 ```
 
 The script name reflects the component deployed and they are idempotent, you can run them more than once without side effects.
+
+Additionally, use the `uninstall` argument to remove the resources deployed previously, i.e.:
+
+```bash
+source .env
+
+./pipeline.sh uninstall
+./registry.sh uninstall
+```
 
 [containerRegistry]: https://docs.docker.com/registry/spec/api/
 [githubTektonCLI]: https://github.com/tektoncd/cli
 [githubTektonFeatureFlags]: https://github.com/tektoncd/pipeline/blob/main/config/config-feature-flags.yaml
 [githubTektonPipeline]: https://github.com/tektoncd/pipeline
+[setupCLI]: https://github.com/openshift-pipelines/setup-tektoncd-cli
 [sigsKinD]: https://kind.sigs.k8s.io
 [useActionWorkflow]: https://github.com/openshift-pipelines/setup-tektoncd/actions/workflows/use-action.yaml
 [useActionWorkflowBadge]: https://github.com/openshift-pipelines/setup-tektoncd/actions/workflows/use-action.yaml/badge.svg
