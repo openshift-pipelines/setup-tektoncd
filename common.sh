@@ -3,15 +3,15 @@
 #
 
 # namespace name for the container registry
-readonly export REGISTRY_NAMESPACE="${REGISTRY_NAMESPACE:-registry}"
+declare -rx REGISTRY_NAMESPACE="${REGISTRY_NAMESPACE:-registry}"
 # the container registry uses the internal k8s service hosntame
-readonly export REGISTRY_HOSTNAME="${REGISTRY_HOSTNAME:-registry.registry.svc.cluster.local}"
+declare -rx REGISTRY_HOSTNAME="${REGISTRY_HOSTNAME:-registry.registry.svc.cluster.local}"
 
 # namespace name for Tekton Pipeline controller
-readonly export TEKTON_NAMESPACE="${TEKTON_NAMESPACE:-tekton-pipelines}"
+declare -rx TEKTON_NAMESPACE="${TEKTON_NAMESPACE:-tekton-pipelines}"
 
 # timeout employed during rollout status and deployments in general
-readonly export DEPLOYMENT_TIMEOUT="${DEPLOYMENT_TIMEOUT:-5m}"
+declare -rx DEPLOYMENT_TIMEOUT="${DEPLOYMENT_TIMEOUT:-5m}"
 
 #
 # Helper Functions
@@ -30,21 +30,19 @@ function phase() {
 
 # uses kubectl to check the deployment status on namespace and name informed.
 function rollout_status() {
-    local namespace="${1}"
-    local deployment="${2}"
+    local _namespace="${1}"
+    local _deployment="${2}"
 
-    if ! kubectl --namespace="${namespace}" --timeout=${DEPLOYMENT_TIMEOUT} \
-        rollout status deployment "${deployment}"; then
-        fail "'${namespace}/${deployment}' is not deployed as expected!"
+    if ! kubectl --namespace="${_namespace}" --timeout=${DEPLOYMENT_TIMEOUT} \
+        rollout status deployment "${_deployment}"; then
+        fail "'${_namespace}/${_deployment}' deployment failed after '${DEPLOYMENT_TIMEOUT}'!"
     fi
 }
 
 # inspect the path after the informed executable name.
 function probe_bin_on_path() {
-    local name="${1}"
-
-    if ! type -a ${name} >/dev/null 2>&1; then
-        fail "Can't find '${name}' on 'PATH=${PATH}'"
+    if ! type -a ${1} >/dev/null 2>&1; then
+        fail "Can't find '${1}' on 'PATH=${PATH}'"
     fi
 }
 
