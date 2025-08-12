@@ -26,7 +26,7 @@ jobs:
           wait: 120s
 
       # checking out the project code on the current workspace
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # self loading the action.yaml definitions, making possible to run the action defined on this
       # project directly
