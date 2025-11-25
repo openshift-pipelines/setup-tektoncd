@@ -1,5 +1,9 @@
 [![use-action][useActionWorkflowBadge]][useActionWorkflow]
 
+> [!IMPORTANT]  
+> This repository is archived, as there is now an official action in the [tektoncd](https://github.com/tektoncd), see [`tektoncd/actions`](https://github.com/tektoncd/actions) repository.
+
+
 `setup-tektoncd`
 ----------------
 
